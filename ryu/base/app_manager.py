@@ -418,6 +418,17 @@ class AppManager(object):
             self.contexts[key] = context
         return self.contexts
 
+    def add_context(self, key, context_cls):
+        if issubclass(context_cls, RyuApp):
+            # hack for dpset
+            context = self._instantiate(None, context_cls)
+
+        else:
+            context = context_cls()
+        LOG.info('creating context %s', key)
+        assert key not in self.contexts
+        self.contexts[key] = context
+
     def _update_bricks(self):
         for i in SERVICE_BRICKS.values():
             for _k, m in inspect.getmembers(i, inspect.ismethod):
@@ -469,6 +480,11 @@ class AppManager(object):
         return app
 
     def instantiate(self, cls, *args, **kwargs):
+        # create context for new application
+        for key, context_cls in cls.context_iteritems():
+            self.add_context(key, context_cls)
+
+        kwargs.update(self.contexts)
         app = self._instantiate(None, cls, *args, **kwargs)
         self._update_bricks()
         self._report_brick(app.name, app)
