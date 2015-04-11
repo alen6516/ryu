@@ -37,6 +37,13 @@ from ryu.app import wsgi
 
 LOG = logging.getLogger('ryu.app.dynamic_load')
 
+def deep_import(mod_name):
+    mod = __import__(mod_name)
+    components = mod_name.split('.')
+    for comp in components[1:]:
+        mod = getattr(mod, comp)
+    return mod
+
 class DynamicLoadCmd(cmd.Cmd):
 
     def __init__(self, *args, **kwargs):
@@ -56,8 +63,7 @@ class DynamicLoadCmd(cmd.Cmd):
                 continue
 
             try:
-                _base = __import__('ryu.app.' + name)
-                _app_module = getattr(_base.app, name)
+                _app_module = deep_import('ryu.app.' + name)
 
                 for _attr_name in dir(_app_module):
                     _attr = getattr(_app_module, _attr_name)
@@ -76,7 +82,7 @@ class DynamicLoadCmd(cmd.Cmd):
         cmd.Cmd.__init__(self, *args, **kwargs)
 
     def do_install(self, line):
-        '''Install an ryu application'''
+        '''Install ryu application'''
         LOG.debug('cmd : %s', line)
         args = line.split(' ')
         if len(args) < 1:
@@ -84,12 +90,17 @@ class DynamicLoadCmd(cmd.Cmd):
             return
 
         try:
+            pdb.set_trace()
             app_cls = __import__(args[0])
             LOG.debug('cls : %s', str(app_cls))
             self.ryu_mgr.instantiate(app_cls)
         except Exception, ex:
             print 'Import error'
             raise ex
+
+    def do_uninstall(self, line):
+        '''Uninstall ryu application'''
+        pass
 
     def do_list(self, line):
         '''List all available ryu application'''
@@ -183,19 +194,3 @@ def main(args=None, prog=None):
 
 if __name__ == '__main__':
     main()
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
