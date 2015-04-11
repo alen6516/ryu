@@ -145,7 +145,7 @@ implemented = {
         ofproto_v1_5.OFPT_ROLE_STATUS: (True, False),
         ofproto_v1_5.OFPT_TABLE_STATUS: (True, False),
         ofproto_v1_5.OFPT_REQUESTFORWARD: (False, True),
-        ofproto_v1_5.OFPT_BUNDLE_CONTROL: (False, True),
+        ofproto_v1_5.OFPT_BUNDLE_CONTROL: (True, True),
         ofproto_v1_5.OFPT_BUNDLE_ADD_MESSAGE: (False, True),
     },
 }
@@ -156,7 +156,7 @@ class Test_Parser(unittest.TestCase):
     """
 
     def __init__(self, methodName):
-        print 'init', methodName
+        print('init ' + methodName)
         super(Test_Parser, self).__init__(methodName)
 
     def setUp(self):
