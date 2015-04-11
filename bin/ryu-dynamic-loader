@@ -1,0 +1,5 @@
+#!/usr/env python
+# -*- coding: utf-8 -*-
+
+from ryu.cmd.ryu_dynamic_loader import main
+main()
