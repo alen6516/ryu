@@ -24,7 +24,6 @@ import sys
 
 from ryu import cfg
 from ryu.lib import hub
-hub.patch(thread=False)
 
 from ryu import log
 from ryu import version
@@ -50,7 +49,7 @@ class DynamicLoadCmd(cmd.Cmd):
         self.ryu_mgr = None
         self.loop_thr = None
         self.services = []
-        self.available_app = {}
+        self.available_app = []
         self.prompt = 'ryu > '
 
         for _, name, is_pkg in pkgutil.walk_packages(ryu_app.__path__):
@@ -71,7 +70,7 @@ class DynamicLoadCmd(cmd.Cmd):
                     if inspect.isclass(_attr) and _attr.__bases__[0] == RyuApp:
                         LOG.debug('\tFind ryu app : %s.%s', _attr.__module__, _attr.__name__)
                         _full_name = '%s.%s' % (_attr.__module__, _attr.__name__)
-                        self.available_app.setdefault(_full_name, _attr)
+                        self.available_app.append((_full_name, _attr))
 
             except ImportError:
                 LOG.debug('Import Error')
@@ -83,17 +82,39 @@ class DynamicLoadCmd(cmd.Cmd):
 
     def do_install(self, line):
         '''Install ryu application'''
+        # pdb.set_trace()
         LOG.debug('cmd : %s', line)
+        
         args = line.split(' ')
         if len(args) < 1:
-            print 'usage: install ryu-app-name'
+            print('usage: install ryu-app-id')
             return
 
         try:
-            pdb.set_trace()
-            app_cls = __import__(args[0])
-            LOG.debug('cls : %s', str(app_cls))
-            self.ryu_mgr.instantiate(app_cls)
+
+            app_id = int(args[0])
+            print('Installing app-id %d' % (app_id, ))
+            args = args[1:]
+            app_cls = self.available_app[app_id][1]
+            _installed_apps = self.ryu_mgr.applications
+            if app_cls in \
+                [obj.__class__ for obj in _installed_apps.values()]:
+                # app was installed
+                print('Application already installed')
+                return False
+
+            app = self.ryu_mgr.instantiate(app_cls, *args)
+            t = app.start()
+            if t is not None:
+                self.services.append(t)
+            print('install finished.')
+
+        except IndexError:
+            print('Can\'t find application with id %d' % app_id)
+
+        except ValueError:
+            print('ryu-app-id must be number')
+
         except Exception, ex:
             print 'Import error'
             raise ex
@@ -107,10 +128,11 @@ class DynamicLoadCmd(cmd.Cmd):
         print('Available app:')
         print('---------------')
         _installed_apps = self.ryu_mgr.applications
-
-        for app_name in self.available_app:
-            _cls = self.available_app[app_name]
-            print '%s' % (app_name, ),
+        _id = 0
+        for app_info in self.available_app:
+            _cls = app_info[1]
+            print '[%02d]%s' % (_id, app_info[0], ),
+            _id = _id + 1
 
             if _cls in \
                 [obj.__class__ for obj in _installed_apps.values()]:
@@ -179,16 +201,11 @@ def main(args=None, prog=None):
     cmd_line_app = DynamicLoadCmd()
     cmd_line_app.ryu_mgr = app_mgr
     cmd_line_app.services = services
-    cmd_thr = hub.spawn()
-    cmd_line_app.loop_thr = cmd_thr
-    # services.append(thr)
-
+    cmd_thr = hub.spawn(cmd_line_app.cmdloop)
+    # services.append(cmd_thr)
     try:
-        cmd_line_app.cmdloop()
-
-        for thr in services:
-            hub.kill(thr)
         hub.joinall(services)
+        # cmd_thr.wait()
     finally:
         app_mgr.close()
 
