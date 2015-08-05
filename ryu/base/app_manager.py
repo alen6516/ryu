@@ -82,9 +82,11 @@ def require_app(app_name, api_style=False):
     else:
         frm = inspect.stack()[1]
     m = inspect.getmodule(frm[0])  # client module
-    m._REQUIRED_APP = getattr(m, '_REQUIRED_APP', [])
-    m._REQUIRED_APP.append(app_name)
-    LOG.debug('require_app: %s is required by %s', app_name, m.__name__)
+
+    if m != None:
+        m._REQUIRED_APP = getattr(m, '_REQUIRED_APP', [])
+        m._REQUIRED_APP.append(app_name)
+        LOG.debug('require_app: %s is required by %s', app_name, m.__name__)
 
 
 class RyuApp(object):

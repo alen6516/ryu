@@ -14,11 +14,13 @@
 
 import re
 import sys
+import six
 
 from ovs.db import error
 import ovs.db.parser
 from ovs.db import types
 
+MAX_INT = 0x7FFFFFFFFFFFFFFF if six.PY3 else sys.maxint # python2 sys.maxint
 
 def _check_id(name, json):
     if name.startswith('_'):
@@ -162,7 +164,7 @@ def column_set_from_json(json, columns):
 
 
 class TableSchema(object):
-    def __init__(self, name, columns, mutable=True, max_rows=sys.maxint,
+    def __init__(self, name, columns, mutable=True, max_rows=MAX_INT,
                  is_root=True, indexes=[]):
         self.name = name
         self.columns = columns
@@ -182,7 +184,7 @@ class TableSchema(object):
         parser.finish()
 
         if max_rows == None:
-            max_rows = sys.maxint
+            max_rows = MAX_INT
         elif max_rows <= 0:
             raise error.Error("maxRows must be at least 1", json)
 
@@ -233,7 +235,7 @@ class TableSchema(object):
             if not column.name.startswith("_"):
                 columns[column.name] = column.to_json()
 
-        if self.max_rows != sys.maxint:
+        if self.max_rows != MAX_INT:
             json["maxRows"] = self.max_rows
 
         if self.indexes:

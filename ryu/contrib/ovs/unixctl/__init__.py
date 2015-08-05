@@ -13,11 +13,12 @@
 # limitations under the License.
 
 import types
-
 import ovs.util
+import six
 
 commands = {}
-strtypes = types.StringTypes
+
+strtypes = types.StringTypes if six.PY2 else str
 
 
 class _UnixctlCommand(object):

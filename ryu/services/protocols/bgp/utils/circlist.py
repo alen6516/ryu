@@ -12,7 +12,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import six
 
 class CircularListType(object):
     """Instances of this class represent a specific type of list.
@@ -161,8 +161,8 @@ class CircularListType(object):
 
         # Keep an interned version of the attribute names. This should
         # speed up the process of looking up the attributes.
-        self.next_name = intern(next_attr_name)
-        self.prev_name = intern(prev_attr_name)
+        self.next_name = six.moves.intern(next_attr_name)
+        self.prev_name = six.moves.intern(prev_attr_name)
 
     def create(self):
         return CircularListType.List(self)

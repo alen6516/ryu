@@ -21,9 +21,7 @@ from abc import abstractmethod
 import numbers
 import logging
 import uuid
-from types import BooleanType
-from types import IntType
-from types import LongType
+import six
 
 from ryu.services.protocols.bgp.base import add_bgp_error_metadata
 from ryu.services.protocols.bgp.base import BGPSException
@@ -32,6 +30,23 @@ from ryu.services.protocols.bgp.base import RUNTIME_CONF_ERROR_CODE
 from ryu.services.protocols.bgp.base import validate
 from ryu.services.protocols.bgp.utils import validation
 from ryu.services.protocols.bgp.utils.validation import is_valid_old_asn
+
+BooleanType = None
+IntType = None
+LongType = None
+
+if six.PY2:
+    import types
+
+    BooleanType = types.BooleanType
+    IntType = types.IntType
+    LongType = types.LongType
+
+else:
+    BooleanType = bool
+    IntType = int
+    LongType = int
+
 
 LOG = logging.getLogger('bgpspeaker.rtconf.base')
 

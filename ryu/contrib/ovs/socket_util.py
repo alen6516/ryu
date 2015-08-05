@@ -1,3 +1,4 @@
+
 # Copyright (c) 2010, 2012 Nicira, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +18,7 @@ import os
 import select
 import socket
 import sys
+import six
 
 import ovs.fatal_signal
 import ovs.poller
@@ -37,7 +39,7 @@ def make_unix_socket(style, nonblock, bind_path, connect_path):
 
     try:
         sock = socket.socket(socket.AF_UNIX, style)
-    except socket.error, e:
+    except socket.error as e:
         return get_exception_errno(e), None
 
     try:
@@ -47,7 +49,7 @@ def make_unix_socket(style, nonblock, bind_path, connect_path):
             # Delete bind_path but ignore ENOENT.
             try:
                 os.unlink(bind_path)
-            except OSError, e:
+            except OSError as e:
                 if e.errno != errno.ENOENT:
                     return e.errno, None
 
@@ -56,19 +58,19 @@ def make_unix_socket(style, nonblock, bind_path, connect_path):
 
             try:
                 if sys.hexversion >= 0x02060000:
-                    os.fchmod(sock.fileno(), 0700)
+                    os.fchmod(sock.fileno(), 448) # 0o700
                 else:
-                    os.chmod("/dev/fd/%d" % sock.fileno(), 0700)
-            except OSError, e:
+                    os.chmod("/dev/fd/%d" % sock.fileno(), 448)
+            except OSError as e:
                 pass
         if connect_path is not None:
             try:
                 sock.connect(connect_path)
-            except socket.error, e:
+            except socket.error as e:
                 if get_exception_errno(e) != errno.EINPROGRESS:
                     raise
         return 0, sock
-    except socket.error, e:
+    except socket.error as e:
         sock.close()
         if bind_path is not None:
             ovs.fatal_signal.unlink_file_now(bind_path)
@@ -102,7 +104,7 @@ def inet_open_active(style, target, default_port, dscp):
     address = inet_parse_active(target, default_port)
     try:
         sock = socket.socket(socket.AF_INET, style, 0)
-    except socket.error, e:
+    except socket.error as e:
         return get_exception_errno(e), None
 
     try:
@@ -110,11 +112,11 @@ def inet_open_active(style, target, default_port, dscp):
         set_dscp(sock, dscp)
         try:
             sock.connect(address)
-        except socket.error, e:
+        except socket.error as e:
             if get_exception_errno(e) != errno.EINPROGRESS:
                 raise
         return 0, sock
-    except socket.error, e:
+    except socket.error as e:
         sock.close()
         return get_exception_errno(e), None
 
@@ -147,7 +149,7 @@ def get_null_fd():
     if null_fd < 0:
         try:
             null_fd = os.open("/dev/null", os.O_RDWR)
-        except OSError, e:
+        except OSError as e:
             vlog.err("could not open /dev/null: %s" % os.strerror(e.errno))
             return -e.errno
     return null_fd
@@ -173,14 +175,14 @@ def write_fully(fd, buf):
             else:
                 bytes_written += retval
                 buf = buf[:retval]
-        except OSError, e:
+        except OSError as e:
             return e.errno, bytes_written
 
 
 def set_nonblocking(sock):
     try:
         sock.setblocking(0)
-    except socket.error, e:
+    except socket.error as e:
         vlog.err("could not set nonblocking mode on socket: %s"
                  % os.strerror(get_socket_error(e)))
 

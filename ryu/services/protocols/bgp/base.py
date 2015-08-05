@@ -22,6 +22,7 @@ import time
 import traceback
 import weakref
 import netaddr
+import six
 
 from ryu.lib import hub
 from ryu.lib import sockopt
@@ -528,7 +529,12 @@ def validate(**kwargs):
     If name is not provided we use function name as name of the validator.
     """
     def decorator(func):
-        _VALIDATORS[kwargs.pop('name', func.func_name)] = func
+        if six.PY2:
+            _VALIDATORS[kwargs.pop('name', func.func_name)] = func
+
+        else:
+            _VALIDATORS[kwargs.pop('name', func.__name__)] = func
+
         return func
 
     return decorator
