@@ -272,8 +272,20 @@ class RyuApp(object):
             if ev == self._event_stop:
                 continue
             handlers = self.get_handlers(ev, state)
+
             for handler in handlers:
-                handler(ev)
+                caller = handler.callers.get(ev.__class__, None)
+
+                if not caller.timeout or not caller:
+                    handler(ev)
+                    continue
+
+                try:
+                    with hub.Timeout(caller.timeout):
+                        handler(ev)
+
+                except hub.Timeout:
+                    self.logger.debug("Event handler %s timeout", handler)
 
     def _send_event(self, ev, state):
         self.events.put((ev, state))

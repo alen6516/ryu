@@ -31,7 +31,7 @@ class _Caller(object):
     """Describe how to handle an event class.
     """
 
-    def __init__(self, dispatchers, ev_source):
+    def __init__(self, dispatchers, ev_source, timeout):
         """Initialize _Caller.
 
         :param dispatchers: A list of states or a state, in which this
@@ -40,28 +40,34 @@ class _Caller(object):
         :param ev_source: The module which generates the event.
                           ev_cls.__module__ for set_ev_cls.
                           None for set_ev_handler.
+        :param timeout: Interrupt handler if handler run more than
+                        timeout seconds.
+                        default timeout is 1 second.
+                        None or False means there is no timeout for
+                        the handler.
         """
         self.dispatchers = dispatchers
         self.ev_source = ev_source
+        self.timeout = timeout
 
 
 # should be named something like 'observe_event'
-def set_ev_cls(ev_cls, dispatchers=None):
+def set_ev_cls(ev_cls, dispatchers=None, timeout=1):
     def _set_ev_cls_dec(handler):
         if 'callers' not in dir(handler):
             handler.callers = {}
         for e in _listify(ev_cls):
-            handler.callers[e] = _Caller(_listify(dispatchers), e.__module__)
+            handler.callers[e] = _Caller(_listify(dispatchers), e.__module__, timeout)
         return handler
     return _set_ev_cls_dec
 
 
-def set_ev_handler(ev_cls, dispatchers=None):
+def set_ev_handler(ev_cls, dispatchers=None, timeout=1):
     def _set_ev_cls_dec(handler):
         if 'callers' not in dir(handler):
             handler.callers = {}
         for e in _listify(ev_cls):
-            handler.callers[e] = _Caller(_listify(dispatchers), None)
+            handler.callers[e] = _Caller(_listify(dispatchers), None, timeout)
         return handler
     return _set_ev_cls_dec
 
