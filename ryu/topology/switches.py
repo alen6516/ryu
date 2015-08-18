@@ -211,6 +211,18 @@ class HostState(dict):
         if ip_v6 != None and ip_v6 not in host.ipv6:
             host.ipv6.append(ip_v6)
 
+    def update_port(self, host, port):
+        mac = host.mac
+        host = None
+
+        if mac in self:
+            host = self[mac]
+
+        if not host:
+            return
+
+        host.port = port
+
     def get_by_dpid(self, dpid):
         result = []
 
@@ -845,6 +857,13 @@ class Switches(app_manager.RyuApp):
         if host_mac not in self.hosts:
             self.hosts.add(host)
             ev = event.EventHostAdd(host)
+            self.send_event_to_observers(ev)
+
+        elif host != self.hosts[host_mac]:
+            # port changed
+            self.hosts.update_port(host, port)
+            host = self.hosts[host_mac]
+            ev = event.EventHostModify(host)
             self.send_event_to_observers(ev)
 
         # arp packet, update ip address

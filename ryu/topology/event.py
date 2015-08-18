@@ -165,4 +165,12 @@ class EventHostAdd(EventHostBase):
     def __init__(self, host):
         super(EventHostAdd, self).__init__(host)
 
+
+class EventHostModify(EventHostBase):
+    '''
+    Event generated when host changed to another port
+    '''
+    def __init__(self, host):
+        super(EventHostModify, self).__init__(host)
+
 handler.register_service('ryu.topology.switches')
