@@ -19,6 +19,7 @@ from . import packet_base
 from . import packet_utils
 from . import dhcp
 from . import vxlan
+from . import dns
 
 
 class udp(packet_base.PacketBase):
@@ -60,6 +61,8 @@ class udp(packet_base.PacketBase):
         if (dst_port == vxlan.UDP_DST_PORT or
                 dst_port == vxlan.UDP_DST_PORT_OLD):
             return vxlan.vxlan
+        if dst_port == 53 or src_port == 53:
+            return dns.dns
         return None
 
     @classmethod
