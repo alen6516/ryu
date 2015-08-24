@@ -29,6 +29,7 @@ $ PYTHONPATH=. ./bin/ryu run \
 import os
 
 from webob.static import DirectoryApp
+from webob import Response
 
 from ryu.app.wsgi import ControllerBase, WSGIApplication, route
 from ryu.base import app_manager
@@ -56,7 +57,15 @@ class GUIServerController(ControllerBase):
         path = "%s/html/" % PATH
         self.static_app = DirectoryApp(path)
 
-    @route('topology', '/{filename:.*}')
+    @route('topology', '/')
+    def root_handler(self, req, **kwargs):
+        res = Response()
+        res.status = 303  # use http 303 "See Other" status code to redirect
+        res.location = '/ui/index.html'
+
+        return res
+
+    @route('topology', '/ui/{filename:.*}')
     def static_handler(self, req, **kwargs):
         if kwargs['filename']:
             req.path_info = kwargs['filename']
