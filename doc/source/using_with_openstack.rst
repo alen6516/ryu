@@ -1,7 +1,7 @@
 .. _using_with_openstack:
 
 ************************************************************************
-Using Ryu Network Operating System with OpenStack as OpenFlow controller
+在 OpenStack 中使用 Ryu 作為網路控制器
 ************************************************************************
 
 Ryu cooperates with OpenStack using Quantum Ryu plugin. The plugin is

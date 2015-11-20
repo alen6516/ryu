@@ -1,31 +1,34 @@
 ***************
-Topology Viewer
+網路拓樸瀏覽器
 ***************
 
-ryu.app.gui_topology.gui_topology provides topology visualization.
+ryu.app.gui_topology.gui_topology 提供了拓樸視覺化的功能
 
-This depends on following ryu applications.
+以下 Ryu 應用程式為本程式在執行階段所需要之相關應用程式。
+
 
 ===================== =================================================
-ryu.app.rest_topology Get node and link data.
-ryu.app.ws_topology   Being notified change of link up/down.
-ryu.app.ofctl_rest    Get flows of datapaths.
+ryu.app.rest_topology 取得所有節點（交換器）以及連結資訊
+ryu.app.ws_topology   在新增連結與中斷連結時會對前端程式送出觸發
+ryu.app.ofctl_rest    從交換器上取得 FlowEntry
 ===================== =================================================
 
-Usage
-=====
+使用方式
+=======
 
-Run mininet (or join your real environment)::
+執行 Mininet 網路模擬器（或是實體網路拓樸）::
 
     $ sudo mn --controller remote --topo tree,depth=3
 
-Run GUI application::
+執行 Ryu 圖形化應用程式::
 
     $ PYTHONPATH=. ./bin/ryu run --observe-links ryu/app/gui_topology/gui_topology.py
 
-Access http://<ip address of ryu host>:8080 with your web browser.
+在瀏覽器連接中輸入::
 
-Screenshot
+    http://<您的主機位址（IP Address）>:8080
+
+預覽畫面
 ==========
 
 .. image:: gui.png

@@ -1,14 +1,16 @@
 *************************************
-OpenFlow v1.4 Messages and Structures
+OpenFlow v1.4 訊息以及結構
 *************************************
+註：本章節部分內容是直接採用程式碼中文件，並由程式自動產生，故部分內容無法直接翻譯。
+註二：本章節並未針對部分專有名詞進行翻譯
 
 .. py:currentmodule:: ryu.ofproto.ofproto_v1_4_parser
 
-Controller-to-Switch Messages
+控制器對交換器訊息
 =============================
 
-Handshake
----------
+OpenFlow 交握（Handshake）協定
+------------------------------------
 
 .. autoclass:: OFPFeaturesRequest
 
@@ -22,7 +24,7 @@ Handshake
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-6-ofp_features_reply.packet.json
 
-Switch Configuration
+交換器設定
 --------------------
 
 .. autoclass:: OFPSetConfig
@@ -43,7 +45,7 @@ Switch Configuration
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-9-ofp_get_config_reply.packet.json
 
-Modify State Messages
+狀態修改訊息
 ---------------------
 
 .. autoclass:: OFPTableMod
@@ -79,7 +81,7 @@ Modify State Messages
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-43-ofp_meter_mod.packet.json
 
-Multipart Messages
+Multipart 訊息
 ------------------
 
 .. autoclass:: OFPDescStatsRequest
@@ -302,7 +304,7 @@ Multipart Messages
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-60-ofp_experimenter_reply.packet.json
 
-Packet-Out Message
+Packet-Out 訊息
 ------------------
 
 .. autoclass:: OFPPacketOut
@@ -311,7 +313,7 @@ Packet-Out Message
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-1-ofp_packet_out.packet.json
 
-Barrier Message
+Barrier 訊息
 ---------------
 
 .. autoclass:: OFPBarrierRequest
@@ -326,8 +328,8 @@ Barrier Message
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-18-ofp_barrier_reply.packet.json
 
-Role Request Message
---------------------
+角色請求（Role Request）訊息
+-----------------------------------
 
 .. autoclass:: OFPRoleRequest
 
@@ -341,7 +343,7 @@ Role Request Message
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-20-ofp_role_reply.packet.json
 
-Bundle Messages
+Bundle 訊息
 ---------------
 
 .. autoclass:: OFPBundleCtrlMsg
@@ -356,7 +358,7 @@ Bundle Messages
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-70-ofp_bundle_add_msg.packet.json
 
-Set Asynchronous Configuration Message
+非同步設定訊息
 --------------------------------------
 
 .. autoclass:: OFPSetAsync
@@ -378,10 +380,10 @@ Set Asynchronous Configuration Message
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-41-ofp_get_async_reply.packet.json
 
 
-Asynchronous Messages
+非同步訊息
 =====================
 
-Packet-In Message
+Packet-In 訊息
 -----------------
 
 .. autoclass:: OFPPacketIn
@@ -391,7 +393,7 @@ Packet-In Message
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-4-ofp_packet_in.packet.json
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-57-ofp_packet_in.packet.json
 
-Flow Removed Message
+Flow 移除訊息
 --------------------
 
 .. autoclass:: OFPFlowRemoved
@@ -400,7 +402,7 @@ Flow Removed Message
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-38-ofp_flow_removed.packet.json
 
-Port Status Message
+埠口狀態訊息
 -------------------
 
 .. autoclass:: OFPPortStatus
@@ -409,8 +411,8 @@ Port Status Message
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-37-ofp_port_status.packet.json
 
-Controller Role Status Message
-------------------------------
+控制器角色狀態（Role Status）訊息
+-------------------------------------------
 
 .. autoclass:: OFPRoleStatus
 
@@ -418,7 +420,7 @@ Controller Role Status Message
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-65-ofp_role_status.packet.json
 
-Table Status Message
+Table 狀態訊息
 --------------------
 
 .. autoclass:: OFPTableStatus
@@ -427,7 +429,7 @@ Table Status Message
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-68-ofp_table_status.packet.json
 
-Request Forward Message
+Request Forward 訊息
 -----------------------
 
 .. autoclass:: OFPRequestForward
@@ -436,12 +438,20 @@ Request Forward Message
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-71-ofp_requestforward.packet.json
 
+錯誤訊息
+-------------
 
-Symmetric Messages
-==================
+.. autoclass:: OFPErrorMsg
 
-Hello
------
+    JSON Example:
+
+    .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-15-ofp_error_msg.packet.json
+
+同步（Symmetric）訊息
+==========================
+
+OpenFlow Hello 訊息
+--------------------
 
 .. autoclass:: OFPHello
 
@@ -451,8 +461,8 @@ Hello
 
 .. autoclass:: OFPHelloElemVersionBitmap
 
-Echo Request
-------------
+回應（Echo）要求
+----------------------
 
 .. autoclass:: OFPEchoRequest
 
@@ -460,8 +470,8 @@ Echo Request
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-13-ofp_echo_request.packet.json
 
-Echo Reply
-----------
+回應（Echo）回覆
+----------------------
 
 .. autoclass:: OFPEchoReply
 
@@ -469,17 +479,9 @@ Echo Reply
 
     .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-14-ofp_echo_reply.packet.json
 
-Error Message
--------------
 
-.. autoclass:: OFPErrorMsg
-
-    JSON Example:
-
-    .. literalinclude:: ../../ryu/tests/unit/ofproto/json/of14/5-15-ofp_error_msg.packet.json
-
-Experimenter
-------------
+實驗訊息
+----------
 
 .. autoclass:: OFPExperimenter
 
@@ -493,14 +495,14 @@ Port Structures
 .. autoclass:: OFPPort
 
 
-Flow Match Structure
+Flow Match 架構
 ====================
 
 .. autoclass:: OFPMatch
 
 
-Flow Instruction Structures
-===========================
+Flow 指令（Instruction）架構
+==================================
 
 .. autoclass:: OFPInstructionGotoTable
 .. autoclass:: OFPInstructionWriteMetadata
@@ -508,8 +510,8 @@ Flow Instruction Structures
 .. autoclass:: OFPInstructionMeter
 
 
-Action Structures
-=================
+動作（Action）架構
+========================
 
 .. autoclass:: OFPActionOutput
 .. autoclass:: OFPActionCopyTtlOut

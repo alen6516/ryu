@@ -1,10 +1,10 @@
 *************************
-Built-in Ryu applications
+Ryu 預設的應用程式
 *************************
 
-Ryu has some built-in Ryu applications.
-Some of them are examples.
-Others provide some functionalities to other Ryu applications.
+Ryu 中包含了一些預設的應用程式
+部分的應用程式為範例應用程式
+也有部分的應用程式主要是用來支援其他應用程式
 
 .. toctree::
    :maxdepth: 1

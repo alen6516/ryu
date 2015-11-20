@@ -1,11 +1,12 @@
 **************************************************
-OpenFlow version independent classes and functions
+OpenFlow 相關類別及函式
 **************************************************
 
 .. py:currentmodule:: ryu.ofproto.ofproto_parser
 
-Base class for OpenFlow messages
---------------------------------
+OpenFlow 訊息所使用的基底類別（Base class）
+---------------------------------------
+註：本章節部分內容是直接採用程式碼中文件，並由程式自動產生，故部分內容無法直接翻譯。
 
 ..    XXX
 ..    the descrption of _TYPE is inlined from ryu/lib/stringify.py.
@@ -18,21 +19,20 @@ Base class for OpenFlow messages
    .. attribute::
     _TYPE
 
-    _TYPE class attribute is used to annotate types of attributes.
+    _TYPE 類別能夠標註屬性的形態。
 
-    This type information is used to find an appropriate conversion for
-    a JSON style dictionary.
+    這種形態所包含的資訊被用來轉換類似 JSON 格式的 dictionary 資料結構。
 
-    Currently the following types are implemented.
+    目前已實作的形態如下：
 
     ===== ==========
-    Type  Descrption
+    型態   說明
     ===== ==========
     ascii US-ASCII
     utf-8 UTF-8
     ===== ==========
 
-    Example::
+    範例::
 
         _TYPE = {
             'ascii': [
@@ -43,7 +43,7 @@ Base class for OpenFlow messages
             ]
         }
 
-Functions
+函式
 ---------
 
 .. autofunction:: ofp_msg_from_jsondict

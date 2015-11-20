@@ -1,7 +1,7 @@
 .. _ofproto_ref:
 
 *******************************
-OpenFlow protocol API Reference
+OpenFlow 協定 API
 *******************************
 
 .. toctree::

@@ -1,27 +1,26 @@
 **************
-Packet library
+Packet 函式庫
 **************
 
-Introduction
+簡介
 ============
 
-Ryu packet library helps you to parse and build various protocol
-packets. dpkt is the popular library for the same purpose, however it
-is not designed to handle protocols that are interleaved; vlan, mpls,
-gre, etc. So we implemented our own packet library.
+Ryu 提供的封包函式庫可以讓開發者去解析封包的內容，或是以現有的資料去產生一個
+自定義的封包。另一方面，dpkt 函式庫與此函式庫的木但相同，但是他並沒有辦法處理
+部分網路協定，例如 vlan, mpls, gre 等等，因此我們在 Ryu 中實作了我們自己的
+封包處理函式庫。
 
-Network Addresses
+網路位址
 =================
 
-Unless otherwise specified, MAC/IPv4/IPv6 addresses are specified
-using human readable strings for this library.
-For example, '08:60:6e:7f:74:e7', '192.0.2.1', 'fe80::a60:6eff:fe7f:74e7'.
+除非有其他的定，否則網路位址如 MAC/IPv4/IPv6 位址都會是可讀的，舉例來說：
+'08:60:6e:7f:74:e7', '192.0.2.1', 'fe80::a60:6eff:fe7f:74e7' 等等
 
-Parsing Packet
+解析封包
 ==============
 
-First, let's look at how we can use the library to parse the received
-packets in a handler for OFPPacketIn messages.
+下方範例程式中，我們使用了封包解析函式庫去解析來自 OFPacketIn 訊息所夾帶的封包
+資料。
 
 .. code-block:: python
        
@@ -33,26 +32,28 @@ packets in a handler for OFPPacketIn messages.
         for p in pkt.protocols:
             print p
 
-You can create a Packet class instance with the received raw
-data. Then the packet library parses the data and creates protocol
-class instances included the data. The packet class 'protocols' has
-the protocol class instances.
+你可以直接使用接收到的原始資料去產生一個 Packet 物件。這一個物件會去解析
+輸入的原始資料，並且將這些資料轉換成為各個針對不同協定的類別物件，這些物件當中
+各自包含了該協定的資料（例如 ipv4 包含了 IP 位址）。
 
-If a TCP packet is received, something like the following is printed::
+在 Packet 中，protocols 這一個屬性是這一個封包所包含的協定物件列表，我們可以從此列表
+中取得這一個封包所有的網路協定。
+
+當一個 TCP 封包被控制器接收到並解析，我們可以看到類似下方的協定列表::
 
     <ryu.lib.packet.ethernet.ethernet object at 0x107a5d790>
     <ryu.lib.packet.vlan.vlan object at 0x107a5d7d0>
     <ryu.lib.packet.ipv4.ipv4 object at 0x107a5d810>
     <ryu.lib.packet.tcp.tcp object at 0x107a5d850>
 
-If vlan is not used, you see something like::
+如果該封包不包含 vlan，則我們可以獲得像是下方的列表::
 
     <ryu.lib.packet.ethernet.ethernet object at 0x107a5d790>
     <ryu.lib.packet.ipv4.ipv4 object at 0x107a5d810>
     <ryu.lib.packet.tcp.tcp object at 0x107a5d850>
 
-You can access to a specific protocol class instance by using the
-packet class iterator.  Let's try to check VLAN id if VLAN is used:
+我們可以隨意的去存取各種不同協定所產生的物件，下方是一個將 VLAN 資料
+取出的的範例程式：
 
 .. code-block:: python
        
@@ -66,7 +67,7 @@ packet class iterator.  Let's try to check VLAN id if VLAN is used:
             if p.protocol_name == 'vlan':
                 print 'vid = ', p.vid
 
-You see something like::
+你可以看到類似下方的結果::
 
     ethernet <ryu.lib.packet.ethernet.ethernet object at 0x107a5d790>
     vlan <ryu.lib.packet.vlan.vlan object at 0x107a5d7d0>
@@ -76,13 +77,13 @@ You see something like::
 
 
 
-Building Packet
+產生一個封包
 ===============
 
-You need to create protocol class instances that you want to send, add
-them to a packet class instance via add_protocol method, and then call
-serialize method. You have the raw data to send. The following example
-is building an arp packet.
+開發者可以自行透過此函式庫去產生一個封包，在產生一個 Packet 類別物件之後，透過
+add_protocol 這一個方法，我們可以在一個封包當中新增不同的網路協定以及資料，
+當一個封包被製作好之後，我們將該封包物件序列化（serialize）產生資料（raw data）
+，並將這一分資料送出，下方範例程式示範了如何透過程式產生一個自定義的封包。
 
 .. code-block:: python
 

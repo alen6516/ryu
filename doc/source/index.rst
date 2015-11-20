@@ -4,10 +4,10 @@
    contain the root `toctree` directive.
 
 ************************************************
-Welcome to RYU the Network Operating System(NOS)
+歡迎使用 RYU，一套軟體定義網路開發框架
 ************************************************
 
-Contents:
+文件目錄:
 
 .. toctree::
    :maxdepth: 2
@@ -20,7 +20,7 @@ Contents:
    snort_integrate.rst
    app.rst
 
-Indices and tables
+索引及表格
 ==================
 
 * :ref:`genindex`

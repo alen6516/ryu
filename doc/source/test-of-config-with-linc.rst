@@ -1,5 +1,5 @@
 ===================================
-Testing OF-config support with LINC
+在 LINC 上測試 OF-config
 ===================================
 
 This page describes how to setup LINC and test Ryu OF-config with it.

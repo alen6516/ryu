@@ -1,21 +1,19 @@
 *******************
-BGP speaker library
+BGP speaker 函式庫
 *******************
 
-Introduction
+簡介
 ============
 
-Ryu BGP speaker library helps you to enable your code to speak BGP
-protocol. The library supports ipv4, ipv4 vpn, and ipv6 vpn address
-families.
+Ryu BGP speaker 函式庫可以讓開發者能夠去操作以及廣播 BGP 協定的訊息。
+這一套函式庫支援了 ipv4, ipv4 vpn 以及 ipv6 vpn 相關網路定址協定
 
-Example
+範例
 =======
 
-The following simple code creates a BGP instance with AS number 64512
-and Router ID 10.0.0.1. It tries to establish a bgp session with a
-peer (its IP is 192.168.177.32 and the AS number is 64513). The
-instance advertizes some prefixes.
+以下範例程式說明了如何去產生一個 AS 編號為 64512 以及路由編號（Route ID）為 10.0.0.1
+的 BGP 實體。它會使用自身的資訊（IP 為 192.168.117.32，AS 為 64512）
+去試圖建立一個 BGP session。這一個 BGP 實體會在他執行階段中去新增一些 prefix.
 
 .. code-block:: python
 

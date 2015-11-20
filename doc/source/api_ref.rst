@@ -1,9 +1,9 @@
 .. _api_ref:
 
 *******************************
-Ryu API Reference
+Ryu API 參考說明
 *******************************
-
+註：本章節部分內容是直接採用程式碼中文件，並由程式自動產生，故部分內容無法直接翻譯。
 .. XXX list all members explicitly to workaround a sphinx bug
 .. XXX https://bitbucket.org/birkenfeld/sphinx/issue/1362
 

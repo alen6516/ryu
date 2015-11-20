@@ -1,8 +1,7 @@
-*******
-Library
-*******
-
-Ryu provides some useful library for your network applications.
+*********************
+Ryu 提供的第三方函式庫
+*********************
+Ryu 提供了一些針對網路應用程式常用的函式庫
 
 .. toctree::
    :maxdepth: 1

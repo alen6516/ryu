@@ -1,17 +1,18 @@
 *****************
-Components of Ryu
+Ryu 的主要元件
 *****************
+註：本章節部分內容是直接採用程式碼中文件，並由程式自動產生，故部分內容無法直接翻譯。
 
-Executables
+可執行的
 ===========
 
 bin/ryu-manager
 ---------------
 
-The main executable.
+Ryu 最主要的執行檔
 
 
-Base components
+基礎元件
 ===============
 
 ryu.base.app_manager
@@ -19,7 +20,7 @@ ryu.base.app_manager
 .. automodule:: ryu.base.app_manager
 
 
-OpenFlow controller
+OpenFlow 控制器
 ===================
 
 ryu.controller.controller
@@ -38,9 +39,8 @@ ryu.controller.ofp_handler
 --------------------------
 .. automodule:: ryu.controller.ofp_handler
 
-
-OpenFlow wire protocol encoder and decoder
-==========================================
+OpenFlow 協定之編碼器(encoder)及解碼器(decoder)
+=====================================================
 
 ryu.ofproto.ofproto_v1_0
 ------------------------
@@ -83,8 +83,8 @@ ryu.ofproto.ofproto_v1_5_parser
 .. automodule:: ryu.ofproto.ofproto_v1_5_parser
 
 
-Ryu applications
-================
+Ryu 預設可使用的應用程式
+============================
 
 ryu.app.cbench
 --------------
@@ -99,7 +99,7 @@ ryu.topology
 .. automodule:: ryu.topology
 
 
-Libraries
+函式庫
 =========
 
 ryu.lib.packet
@@ -123,7 +123,7 @@ ryu.lib.xflow
 .. automodule:: ryu.lib.xflow
 
 
-Third party libraries
+第三方函式庫
 =====================
 
 ryu.contrib.ovs
@@ -141,4 +141,3 @@ ryu.contrib.ncclient
 --------------------
 
 Python library for NETCONF client. Used by ryu.lib.of_config.
-

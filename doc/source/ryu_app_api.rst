@@ -1,369 +1,345 @@
-*******************
-Ryu application API
-*******************
+*************************
+Ryu 應用程式開發介面(API)
+*************************
 
-Ryu application programming model
+Ryu 應用程式開發模型
 =================================
 
-Threads, events, and event queues
----------------------------------
+執行緒（Threads）、事件、事件隊列（Queues）
+---------------------------------------------
 
-Ryu applications are single-threaded entities which implement
-various functionalities in Ryu.  Events are messages between them.
+在Ryu 中，Ryu 應用程式是一個實作網路功能的單執行緒（single-threaded）應用
+程式。事件與訊息會在不同的應用程式之間傳遞。
 
-Ryu applications send asynchronous events each other.
-Besides that, there are some Ryu-internal event sources which
-are not Ryu applications.  One of examples of such event sources
-is OpenFlow controller.
-While an event can currently contain arbitrary python objects,
-it's discouraged to pass complex objects (eg. unpickleable objects)
-between Ryu applications.
+Ryu 應用程式會透過非同步的方式將事件傳送至其他應用程式中。
+事件傳送與接收的執行緒不一定是一支 Ryu 應用程式，他有可能會是其他非
+Ryu 應用程式產生的執行緒，舉例來說，OpenFlow Controller 就是一個
+會產生並傳送 Ryu 事件的一支非 Ryu 的應用程式。
+一個事件可以夾帶許多已經封裝好的 Python 物件，在這邊我們並不鼓勵將過於複雜
+（例如：未封裝的資料）的物件封裝在事件當中並傳送。
 
-Each Ryu application has a receive queue for events.
-The queue is FIFO and preserves the order of events.
-Each Ryu application has a thread for event processing.
-The thread keep draining the receive queue by dequeueing an event
-and calling the appropritate event handler for the event type.
-Because the event handler is called in the context of
-the event processing thread, it should be careful for blocking.
-I.e. while an event handler is blocked, no further events for
-the Ryu application will be processed.
+每一個不同的 Ryu 應用程式都會包含一個專門用來接收事件的隊列。
+隊列提供了先進先出（FIFO）的規則，讓每一個事件都會依序的被執行。
+而每一個 Ryu 應用程式都會有一個負責處理事件的執行緒，這一個執行緒會持續的
+將事件隊列中的事件取出並且將事件傳送給對應的方法。
+每一個事件都會在同一個執行緒中處理，因此在設計事件處理的方法時必須要非常小心
+避免一個處理方法將事件執行緒停住（Blocking），若一個事件執行緒被其中一個處理事件的
+方法給停止，則該 Ryu 應用程式將不會再接收（處理）任何的事件。
 
-There are kinds of events which are used to implement synchronous
-inter-application calls between Ryu applications.
-While such requests uses the same machinary as ordinary
-events, their replies are put on a queue dedicated to the transaction
-to avoid deadlock.
+有部分的事件是以同步（synchronous）的方式處理，他可以讓不同的 Ryu 應用程式
+相互呼叫。
+當一個事件以同步的方式呼叫，則它們的回應（reply）會被放置在隊列中以避免死結（deadlock）
+問題。
 
-While threads and queues is currently implemented with eventlet/greenlet,
-a direct use of them in a Ryu application is strongly discouraged.
+在 Ryu 中所使用的執行緒以及隊列是使用 eventlet/greenlet 這一套函式庫所實作，這邊
+並不鼓勵直接在 Ryu 應用程式中直接使用它們。
 
 Contexts
 --------
-Contexts are ordinary python objects shared among Ryu applications.
-The use of contexts are discouraged for new code.
+Contexts 是一個共享於不同 Ryu 應用程式之間的 Python 物件。使用共享的物件
+可以避免一個功能或是物件重複被創造。
 
-Create a Ryu application
+建立一個 Ryu 應用程式
 ========================
-A Ryu application is a python module which defines a subclass of
-ryu.base.app_manager.RyuApp.
-If two or more such classes are defined in a module, the first one
-(by name order) will be picked by app_manager.
-Ryu application is singleton: only single instance of a given Ryu
-application is supported.
+Ryu 應用程式是一個繼承自 ryu.base.app_manager.RyuApp 的類別。
+如果在一個 Python 模組（module）中定義了兩個以上的 Ryu 應用程式類別，
+則 app_manager 會以名稱作為排序，並且取用第一個應用程式作為這一個模組中
+的 Ryu 應用程式執行。
 
-Observe events
+Ryu 應用程式為一個獨立執行個體（singleton）：每一個 Ryu 應用程式僅會有一個
+實體（instance）。
+
+事件接收
 ==============
-A Ryu application can register itself to listen for specific events
-using ryu.controller.handler.set_ev_cls decorator.
+Ryu 應用程式會事先透過 ryu.controller.handler.set_ev_cls 去註冊需要接收的事件。
 
-Generate events
+產生事件
 ===============
-A Ryu application can raise events by calling appropriate
-ryu.base.app_manager.RyuApp's methods like send_event or
-send_event_to_observers.
+Ryu 應用程式在產生出事件物件之後，可以透過 send_event 傳送事件至特定的 Ryu 應用程式，
+或是透過 send_event_to_observers 傳送到有註冊該事件的應用程式。
 
-Event classes
+事件類別
 =============
-An event class describes a Ryu event generated in the system.
-By convention, event class names are prefixed by "Event".
-Events are generated either by the core part of Ryu or Ryu applications.
-A Ryu application can register its interest for a specific type of
-event by providing a handler method using
-ryu.controller.handler.set_ev_cls decorator.
+事件類別表示了在 Ryu 中所產生（發生）的事件。
+一般而言，所有事件的類別都會在名稱前方加上「Event」用以區別。
+一個事件可以被 Ryu 的核心程式或是一般 Ryu 應用程式產生。
+Ryu 應用程式可以事先註冊他所想要接收的 Event 類別，只需在處理該事件的方法前
+加上 ryu.controller.handler.set_ev_cls 修飾詞（decorator）即可。
 
-OpenFlow event classes
+OpenFlow 事件類別
 ----------------------
-ryu.controller.ofp_event module exports event classes which describe
-receptions of OpenFlow messages from connected switches.
-By convention, they are named as ryu.controller.ofp_event.EventOFPxxxx
-where xxxx is the name of the corresponding OpenFlow message.
-For example, EventOFPPacketIn for packet-in message.
-The OpenFlow controller part of Ryu automatically decodes OpenFlow messages
-received from switches and send these events to Ryu applications which
-expressed an interest using ryu.controller.handler.set_ev_cls.
-OpenFlow event classes have at least the following attributes.
+當連上的交換器傳送 OpenFlow 訊息時，ryu.controller.ofp_event 模組能夠將該訊息
+轉換成事件類別。
+
+原則上，每一個事件類別都會以 EventOFP 作為開頭，舉例來說 EventOFPPacketIn 就是
+packet-in 訊息所產生的事件類別。
+
+Ryu 架構下的 Controller 會自動將接收到的 OpenFlow 訊息解碼，並將事件物件傳送到
+使用 ryu.controller.handler.set_ev_cls 去註冊該事件的 Ryu 應用程式。
+
+OpenFlow 事件包含了下列兩項屬性：
 
 .. tabularcolumns:: |l|L|
 
 ============ =============================================================
 Attribute    Description
 ============ =============================================================
-msg          An object which describes the corresponding OpenFlow message.
-msg.datapath A ryu.controller.controller.Datapath instance which describes
-             an OpenFlow switch from which we received this OpenFlow message.
+msg          OpenFlow 訊息內容，依據接收到的訊息會有所不同。
+msg.datapath 接收到該訊息的 ryu.controller.controller.Datapath 實體
 ============ =============================================================
 
-The msg object has some more additional members whose values are extracted
-from the original OpenFlow message.
-See :ref:`ofproto_ref` for more info about OpenFlow messages.
+每一個訊息物件中都會包含許多而外的資訊，這些資訊都是從原始的訊息所解碼出來的。
+詳細可以參考 :ref:`ofproto_ref` 章節。
 
 ryu.base.app_manager.RyuApp
 ===========================
 
-See :ref:`api_ref`.
+請參閱 :ref:`api_ref` 章節。
 
 ryu.controller.handler.set_ev_cls(ev_cls, dispatchers=None)
 ===========================================================
+set_ev_cls 是一個用於將方法註冊成 Ryu 事件處理器的一個修飾器，被修飾的
+方法將會成為一個事件處理器。
 
-A decorator for Ryu application to declare an event handler.
-Decorated method will become an event handler.
-ev_cls is an event class whose instances this RyuApp wants to receive.
-dispatchers argument specifies one of the following negotiation phases
-(or a list of them) for which events should be generated for this handler.
-Note that, in case an event changes the phase, the phase before the change
-is used to check the interest.
+ev_cls 表示了一個想要被該 Ryu 應用程式接收的事件類別。
+
+dispatchers 則表示了該事件處理器將會在哪些談判階段（negotiation phases）
+去接收此一類型的事件，舉例來說，HANDSHAKE_DISPATCHER 表示了在交換器與
+控制器連線（交握）階段所產生的事件。
 
 .. tabularcolumns:: |l|L|
 
 =========================================== ==================================
-Negotiation phase                           Description
+談判階段（Negotiation phase）                 說明
 =========================================== ==================================
-ryu.controller.handler.HANDSHAKE_DISPATCHER Sending and waiting for hello
-                                            message
-ryu.controller.handler.CONFIG_DISPATCHER    Version negotiated and sent
-                                            features-request message
-ryu.controller.handler.MAIN_DISPATCHER      Switch-features message received
-                                            and sent set-config message
-ryu.controller.handler.DEAD_DISPATCHER      Disconnect from the peer.  Or
-                                            disconnecting due to some
-                                            unrecoverable errors.
+ryu.controller.handler.HANDSHAKE_DISPATCHER 送出以及等待 hello 訊息
+ryu.controller.handler.CONFIG_DISPATCHER    版本協議以及送出 feature-request 訊息
+ryu.controller.handler.MAIN_DISPATCHER      接收 Switch-features 訊息以及
+                                            傳送 set-config 訊息
+ryu.controller.handler.DEAD_DISPATCHER      連線被其中一方中斷，或是未知錯誤導致
+                                            雙方連線中斷。
 =========================================== ==================================
 
 ryu.controller.controller.Datapath
 ==================================
 
-A class to describe an OpenFlow switch connected to this controller.
-An instance has the following attributes.
+一個包含了連上控制器交換器資訊的物件，任何程式要傳送訊息（OpenFlow Message）給控制
+器均需透過本物件來傳送。
+
+Datapath 類別中包含了以下屬性：
 
 .. tabularcolumns:: |l|L|
 
 ====================================== =======================================
-Attribute                              Description
+屬性                                    說明
 ====================================== =======================================
-id                                     64-bit OpenFlow Datapath ID.
-                                       Only available for
+id                                     64-bit OpenFlow Datapath ID。  
+                                       這一個屬性只有在
                                        ryu.controller.handler.MAIN_DISPATCHER
-                                       phase.
-ofproto                                A module which exports OpenFlow
-                                       definitions, mainly constants appeared
-                                       in the specification, for the
-                                       negotiated OpenFlow version.  For
-                                       example, ryu.ofproto.ofproto_v1_0 for
-                                       OpenFlow 1.0.
-ofproto_parser                         A module which exports OpenFlow wire
-                                       message encoder and decoder for the
-                                       negotiated OpenFlow version.  For
-                                       example, ryu.ofproto.ofproto_v1_0_parser
-                                       for OpenFlow 1.0.
-ofproto_parser.OFPxxxx(datapath, ....) A callable to prepare an OpenFlow
-                                       message for the given switch.  It can
-                                       be sent with Datapath.send_msg later.
-                                       xxxx is a name of the message.  For
-                                       example OFPFlowMod for flow-mod
-                                       message.  Arguemnts depend on the
-                                       message.
-set_xid(self, msg)                     Generate an OpenFlow XID and put it
-                                       in msg.xid.
-send_msg(self, msg)                    Queue an OpenFlow message to send to
-                                       the corresponding switch.  If msg.xid
-                                       is None, set_xid is automatically
-                                       called on the message before queueing.
-send_packet_out                        deprecated
-send_flow_mod                          deprecated
-send_flow_del                          deprecated
-send_delete_all_flows                  deprecated
-send_barrier                           Queue an OpenFlow barrier message to
-                                       send to the switch.
-send_nxt_set_flow_format               deprecated
-is_reserved_port                       deprecated
+                                       階段有效。
+ofproto                                一個能夠表示該控制器所使用的 OpenFlow
+                                       版本以及該版本訊息之定義，詳細的定義
+                                       可以參考 :ref:`ofproto_ref` 章節，
+                                       此屬性會以 ryu.ofproto.ofproto_vxxx 為主
+                                       ，舉例來說 ofproto_v1_0 表示了該交換器使用
+                                       OpenFlow 1.0 協定。
+ofproto_parser                         此屬性是一個以該交換器協定所實作的編碼及
+                                       解碼器，這一個物件是依據上一個屬性所定義的
+                                       舉例來說，若他是 
+                                       ryu.ofproto.ofproto_v1_0_parser
+                                       則他就會透過 OpenFlow 1.0 協定去編碼及
+                                       解碼訊息。
+ofproto_parser.OFPxxxx(datapath, ....) 透過呼叫 OFPxxxx 來產生出訊息，這一個訊息
+                                       可以透過 send_msg 這一個方法去傳送給實體
+                                       的交換器。xxxx 表示了訊息名稱，舉例來說
+                                       OFPFlowMod 表示了一個 flow-mod 的訊息
+                                       每一個訊息的參數都是基於原始訊息去定義的。
+set_xid(self, msg)                     產生一個 OpenFlow 的 XID 然後將這一個
+                                       XID 放置到 msg.xid 中。
+send_msg(self, msg)                    將訊息放置到一個傳送專用的隊列(queue)
+                                       中，隨後將會被一個專門傳送訊息的執行緒給
+                                       傳送。如果msg.xid 為 None，則會自動先
+                                       呼叫 set_xid 方法，在放入隊列中。
+send_packet_out                        將被棄用。
+send_flow_mod                          將被棄用。
+send_flow_del                          將被棄用。
+send_delete_all_flows                  將被棄用。
+send_barrier                           將 barrier 訊息放置傳送用的隊列中。
+send_nxt_set_flow_format               將被棄用。
+is_reserved_port                       將被棄用。
 ====================================== =======================================
 
 ryu.controller.event.EventBase
 ==============================
 
-The base of all event classes.
-A Ryu application can define its own event type by creating a subclass.
+所有的事件類別都會繼承自 EventBase。
+若需自行設計事件類別，只需要建立一個繼承自它的類別即可。
 
 ryu.controller.event.EventRequestBase
 =====================================
 
-The base class for synchronous request for RyuApp.send_request.
+若需透過 RyuApp.send_request 傳送同步（synchronous）的事件，則
+需要讓事件類別繼承自 EventRequestBase。
 
 ryu.controller.event.EventReplyBase
 ===================================
 
-The base class for synchronous request reply for RyuApp.send_reply.
+若需要透過 RyuApp.send_reply 來回覆同步請求事件，則該事件需要
+繼承 EventReplyBase。
 
 ryu.controller.ofp_event.EventOFPStateChange
 ============================================
 
-An event class for negotiation phase change notification.
-An instance of this class is sent to observer after changing
-the negotiation phase.
-An instance has at least the following attributes.
+用於傳送談判階段（negotiation phase）在替換時所產生的事件，當一個
+階段轉換完成時，此事件會被傳送。
+這一個類別包含了以下屬性。
 
 ========= ====================================================================
-Attribute Description
+屬性       說明
 ========= ====================================================================
-datapath  ryu.controller.controller.Datapath instance of the switch
+datapath  ryu.controller.controller.Datapath 的實體
 ========= ====================================================================
 
 ryu.controller.dpset.EventDP
 ============================
 
-An event class to notify connect/disconnect of a switch.
-For OpenFlow switches, one can get the same notification by observing
-ryu.controller.ofp_event.EventOFPStateChange.
-An instance has at least the following attributes.
+當一個實體交換器連上或是斷線的時候會產生此事件。
+對於 OpenFlow 交換器，這一個事件原則上跟 
+ryu.controller.ofp_event.EventOFPStateChange 
+是一樣的。EventDP 包含了以下屬性。
 
 ========= ====================================================================
-Attribute Description
+屬性       說明
 ========= ====================================================================
-dp        A ryu.controller.controller.Datapath instance of the switch
-enter     True when the switch connected to our controller.  False for
-          disconnect.
+dp        ryu.controller.controller.Datapath 的實體，用於表示交換器。
+enter     若表示一個交換器連上，則為 True，若斷線則為 False。
 ========= ====================================================================
 
 ryu.controller.dpset.EventPortAdd
 =================================
 
-An event class for switch port status notification.
-This event is generated when a new port is added to a switch.
-For OpenFlow switches, one can get the same notification by observing
-ryu.controller.ofp_event.EventOFPPortStatus.
-An instance has at least the following attributes.
+當一個新的埠口連接到一台交換器上面，則此事件會被觸發。
+對於 OpenFlow 交換器，這一個事件等同於
+ryu.controller.ofp_event.EventOFPPortStatus
+這一個事件至少包含了以下屬性：
 
 ========= ====================================================================
 Attribute Description
 ========= ====================================================================
-dp        A ryu.controller.controller.Datapath instance of the switch
-port      port number
+dp        ryu.controller.controller.Datapath 的實體，用於表示交換器。
+port      該埠口的埠口編號
 ========= ====================================================================
 
 ryu.controller.dpset.EventPortDelete
 ====================================
 
-An event class for switch port status notification.
-This event is generated when a port is removed from a switch.
-For OpenFlow switches, one can get the same notification by observing
-ryu.controller.ofp_event.EventOFPPortStatus.
-An instance has at least the following attributes.
+當一個埠口從交換器上面移除，則此事件會被觸發。
+對於 OpenFlow 交換器，這一個事件等同於
+ryu.controller.ofp_event.EventOFPPortStatus
+這一個事件至少包含了以下屬性：
 
 ========= ====================================================================
 Attribute Description
 ========= ====================================================================
-dp        A ryu.controller.controller.Datapath instance of the switch
-port      port number
+dp        ryu.controller.controller.Datapath 的實體，用於表示交換器。
+port      該埠口的埠口編號
 ========= ====================================================================
 
 ryu.controller.dpset.EventPortModify
 ====================================
 
-An event class for switch port status notification.
-This event is generated when some attribute of a port is changed.
-For OpenFlow switches, one can get the same notification by observing
-ryu.controller.ofp_event.EventOFPPortStatus.
-An instance has at least the following attributes.
+當一個埠口的屬性被更改（例如將埠口設定成OFPPC_NO_STP），則此事件會被觸發。
+對於 OpenFlow 交換器，這一個事件等同於
+ryu.controller.ofp_event.EventOFPPortStatus
+這一個事件至少包含了以下屬性：
 
 ========= ====================================================================
 Attribute Description
 ========= ====================================================================
-dp        A ryu.controller.controller.Datapath instance of the switch
-port      port number
+dp        ryu.controller.controller.Datapath 的實體，用於表示交換器。
+port      該埠口的埠口編號
 ========= ====================================================================
 
 ryu.controller.network.EventNetworkPort
 =======================================
 
-An event class for notification of port arrival and deperture.
-This event is generated when a port is introduced to or removed from a network
-by the REST API.
-An instance has at least the following attributes.
+當一個埠口透過 REST API 在一個網路中加入或是移除，則此事件會被觸發。
+這一個事件至少包含了以下屬性：
 
 ========== ===================================================================
-Attribute  Description
+屬性        說明
 ========== ===================================================================
-network_id Network ID
-dpid       OpenFlow Datapath ID of the switch to which the port belongs.
-port_no    OpenFlow port number of the port
-add_del    True for adding a port.  False for removing a port.
+network_id 網路編號（Network ID）
+dpid       該埠口所存在交換器之 OpenFlow Datapath ID。
+port_no    該埠口的 OpenFlow 埠口編號。
+add_del    新增時為 True，刪除時則是 False。
 ========== ===================================================================
 
 ryu.controller.network.EventNetworkDel
 ======================================
 
-An event class for network deletion.
-This event is generated when a network is deleted by the REST API.
-An instance has at least the following attributes.
+當透過 REST API 刪除一個網路資料時便會觸發。
+這一個事件至少包含了以下屬性：
 
 ========== ===================================================================
-Attribute  Description
+屬性        說明
 ========== ===================================================================
-network_id Network ID
+network_id 網路編號（Network ID）
 ========== ===================================================================
 
 ryu.controller.network.EventMacAddress
 ======================================
 
-An event class for end-point MAC address registration.
-This event is generated when a end-point MAC address is updated
-by the REST API.
-An instance has at least the following attributes.
+當一個終端設備（特定埠口下）的 Mac 位址透過 REST API 更新時，則會觸發此事件。
+這一個事件至少包含了以下屬性：
 
 =========== ==================================================================
-Attribute   Description
+屬性         說明
 =========== ==================================================================
-network_id  Network ID
-dpid        OpenFlow Datapath ID of the switch to which the port belongs.
-port_no     OpenFlow port number of the port
-mac_address The old MAC address of the port if add_del is False.  Otherwise
-            the new MAC address.
-add_del     False if this event is a result of a port removal.  Otherwise
-            True.
+network_id  網路編號（Network ID）
+dpid        該埠口所存在交換器之 OpenFlow Datapath ID。
+port_no     該埠口的 OpenFlow 埠口編號。
+mac_address 若 add_del 為 False，則此一屬性為舊的 MAC 位址，否則就會是新的 MAC 位址。
+add_del     若要移除該終端設備，則此屬性為 False，否則為 True。
 =========== ==================================================================
 
 ryu.controller.tunnels.EventTunnelKeyAdd
 ========================================
 
-An event class for tunnel key registration.
-This event is generated when a tunnel key is registered or updated
-by the REST API.
-An instance has at least the following attributes.
+當透過 RESP API 註冊（新增）或是更新一個 Tunnel Key 時，則會觸發此一事件。
+這一個事件至少包含了以下屬性：
 
 =========== ==================================================================
-Attribute   Description
+屬性         說明
 =========== ==================================================================
-network_id  Network ID
+network_id  網路編號（Network ID）
 tunnel_key  Tunnel Key
 =========== ==================================================================
 
 ryu.controller.tunnels.EventTunnelKeyDel
 ========================================
 
-An event class for tunnel key registration.
-This event is generated when a tunnel key is removed by the REST API.
-An instance has at least the following attributes.
+當透過 RESP API 刪除一個 Tunnel Key 時，則會觸發此一事件。
+這一個事件至少包含了以下屬性：
 
 =========== ==================================================================
-Attribute   Description
+屬性         說明
 =========== ==================================================================
-network_id  Network ID
+network_id  網路編號（Network ID）
 tunnel_key  Tunnel Key
 =========== ==================================================================
 
 ryu.controller.tunnels.EventTunnelPort
 ======================================
 
-An event class for tunnel port registration.
-This event is generated when a tunnel port is added or removed by the REST API.
-An instance has at least the following attributes.
+當一個 tunnel 埠口透過 REST API 新增或是刪除時，則會觸發此一事件。
+這一個事件至少包含了以下屬性：
 
 =========== ==================================================================
-Attribute   Description
+屬性         說明
 =========== ==================================================================
 dpid        OpenFlow Datapath ID
-port_no     OpenFlow port number
-remote_dpid OpenFlow port number of the tunnel peer
-add_del     True for adding a tunnel.  False for removal.
+port_no     OpenFlow 埠口編號。
+remote_dpid tunnel 另一端的埠口編號。
+add_del     新增為 True，刪除為 False。
 =========== ==================================================================
